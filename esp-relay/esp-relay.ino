@@ -4,6 +4,8 @@
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
 
+#include "DS18B20.h"
+
 #ifndef STASSID
 #define STASSID "evilnet"
 #define STAPSK  "AiGuINet"
@@ -13,6 +15,8 @@ const char* ssid = STASSID;
 const char* password = STAPSK;
 
 ESP8266WebServer server(80);
+
+DS18B20 DS18B20Sensor(D1);
 
 const int led = 13;
 
@@ -74,6 +78,17 @@ void setup() {
     Serial.println("HTTP server started");
 }
 
+float t = 0.0;
+
 void loop() {
     server.handleClient();
+
+    DS18B20Sensor.detectTemperature();
+
+    if (t != DS18B20Sensor.temperature())
+    {
+        t = DS18B20Sensor.temperature();
+        Serial.println(t);
+    }
+    
 }
