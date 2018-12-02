@@ -23,9 +23,7 @@ void DS18B20::detectTemperature(){
         data[0] = ds_.read();
         data[1] = ds_.read();
  
-        // Формируем значение
-        temperature_ = (data[1] << 8) + data[0]; 
-        temperature_ = temperature_ >> 4;
+        temperature_ =  ((data[1] << 8) | data[0]) * 0.0625;
     }
 }
 

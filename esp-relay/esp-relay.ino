@@ -18,16 +18,13 @@ ESP8266WebServer server(80);
 
 DS18B20 DS18B20Sensor(D1);
 
-const int led = 13;
-
-void handleRoot() {
-    digitalWrite(led, 1);
+void handleRoot() 
+{
     server.send(200, "text/plain", "hello from esp8266!");
-    digitalWrite(led, 0);
 }
 
-void handleNotFound() {
-    digitalWrite(led, 1);
+void handleNotFound() 
+{
     String message = "File Not Found\n\n";
     message += "URI: ";
     message += server.uri();
@@ -40,12 +37,20 @@ void handleNotFound() {
         message += " " + server.argName(i) + ": " + server.arg(i) + "\n";
     }
     server.send(404, "text/plain", message);
-    digitalWrite(led, 0);
+}
+
+void handleAllInfo()
+{
+    String message = "{";
+    
+    message += "\"temperature\":\"";
+    message += String(DS18B20Sensor.temperature());
+    
+    message += "}";
+    server.send(200, "application/json", message);
 }
 
 void setup() {
-    pinMode(led, OUTPUT);
-    digitalWrite(led, 0);
     Serial.begin(115200);
     WiFi.mode(WIFI_STA);
     WiFi.begin(ssid, password);
@@ -67,9 +72,10 @@ void setup() {
     }
 
     server.on("/", handleRoot);
+    server.on("/api/getInfo", handleAllInfo);
 
-    server.on("/inline", []() {
-        server.send(200, "text/plain", "this works as well");
+    server.on("/api/getTemp", []() {
+        server.send(200, "text/plain", String(DS18B20Sensor.temperature()));
     });
 
     server.onNotFound(handleNotFound);

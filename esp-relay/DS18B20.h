@@ -13,7 +13,7 @@ public:
 private:
     OneWire ds_;
     uint32_t lastUpdateTime_ = 0;
-    int temperature_ = 0;
+    float temperature_ = 0;
 };
 
 #endif
