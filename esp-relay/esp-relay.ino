@@ -5,6 +5,8 @@
 #include <ESP8266mDNS.h>
 
 #include "DS18B20.h"
+#include "RelayAlgorithm.h"
+#include "TimerRelay.h"
 
 #ifndef STASSID
 #define STASSID "evilnet"
@@ -17,6 +19,10 @@ const char* password = STAPSK;
 ESP8266WebServer server(80);
 
 DS18B20 DS18B20Sensor(D1);
+RelayAlgorithm relayAlgorithm(D2, D3, D4);
+TimerRelay relay4(D5);
+TimerRelay relay5(D6);
+TimerRelay relay6(D7);
 
 void handleRoot() 
 {
@@ -45,6 +51,11 @@ void handleAllInfo()
     
     message += "\"temperature\":\"";
     message += String(DS18B20Sensor.temperature());
+    message += "\",";
+
+    message += "\"isRunning\":\"";
+    message += String(relayAlgorithm.isRunning());
+    message += "\",";
     
     message += "}";
     server.send(200, "application/json", message);
@@ -82,19 +93,22 @@ void setup() {
 
     server.begin();
     Serial.println("HTTP server started");
-}
 
-float t = 0.0;
+    relayAlgorithm.init();
+
+    relay4.init();
+    relay5.init();
+    relay6.init();
+}
 
 void loop() {
     server.handleClient();
 
     DS18B20Sensor.detectTemperature();
 
-    if (t != DS18B20Sensor.temperature())
-    {
-        t = DS18B20Sensor.temperature();
-        Serial.println(t);
-    }
-    
+    relayAlgorithm.tick();
+
+    relay4.tick();
+    relay5.tick();
+    relay6.tick();
 }
