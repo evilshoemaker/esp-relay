@@ -68,6 +68,32 @@ void handleAllInfo()
     server.send(200, "application/json", message);
 }
 
+void startAlhorithmTime()
+{
+    if (!relayAlgorithm.isRenning())
+    {
+        relayAlgorithm.start();
+    }
+}
+
+void startAlhorithmTemp()
+{
+    if (!relayAlgorithm.isRenning())
+    {
+        relayAlgorithm.start();
+    }
+}
+
+void stopAlhorithm()
+{
+    
+}
+
+void turnOnRelay()
+{
+    
+}
+
 void setup() 
 {
     Serial.begin(115200);
@@ -75,7 +101,6 @@ void setup()
     WiFi.begin(ssid, password);
     Serial.println("");
 
-    // Wait for connection
     while (WiFi.status() != WL_CONNECTED) {
         delay(500);
         Serial.print(".");
@@ -92,9 +117,10 @@ void setup()
 
     server.on("/", handleRoot);
     server.on("/api/getInfo", handleAllInfo);  
-    server.on("/api/startAlhorithmTime", handleAllInfo);
-    server.on("/api/startAlhorithmTemp", handleAllInfo);
-    server.on("/api/stopAlhorithm", handleAllInfo);
+    server.on("/api/startAlhorithmTime", startAlhorithmTime);
+    server.on("/api/startAlhorithmTemp", startAlhorithmTemp);
+    server.on("/api/stopAlhorithm", stopAlhorithm);
+    server.on("/api/turnOnRelay", turnOnRelay);
 
     server.onNotFound(handleNotFound);
 
