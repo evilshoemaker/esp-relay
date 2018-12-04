@@ -8,7 +8,7 @@ class RelayAlgorithm
 public:
     RelayAlgorithm(uint8_t relay1Pin, uint8_t relay2Pin, uint8_t relay3Pin);
 
-    void init();
+    void begin();
     void tick();
     void start();
     void stop();

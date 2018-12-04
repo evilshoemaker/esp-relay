@@ -6,7 +6,7 @@ TimerRelay::TimerRelay(uint8_t relayPin) :
     
 }
 
-void TimerRelay::init()
+void TimerRelay::begin()
 {
     pinMode(relayPin_, OUTPUT);
     digitalWrite(relayPin_, HIGH);

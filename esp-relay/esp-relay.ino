@@ -3,14 +3,17 @@
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
+#include "avdweb_Switch.h"
 
 #include "DS18B20.h"
 #include "RelayAlgorithm.h"
 #include "TimerRelay.h"
 
+#include "index.h"
+
 #ifndef STASSID
-#define STASSID "evilnet"
-#define STAPSK  "AiGuINet"
+#define STASSID "em70"
+#define STAPSK  "em70Greate"
 #endif
 
 const char* ssid = STASSID;
@@ -24,9 +27,11 @@ TimerRelay relay4(D5);
 TimerRelay relay5(D6);
 TimerRelay relay6(D7);
 
+Switch cancelButton = Switch(D8, INPUT, HIGH);
+
 void handleRoot() 
 {
-    server.send(200, "text/plain", "hello from esp8266!");
+    server.sendContent_P(MAIN_page);
 }
 
 void handleNotFound() 
@@ -47,6 +52,8 @@ void handleNotFound()
 
 void handleAllInfo()
 {
+    server.sendHeader("Access-Control-Allow-Origin", "*");
+    
     String message = "{";
     
     message += "\"temperature\":\"";
@@ -55,13 +62,14 @@ void handleAllInfo()
 
     message += "\"isRunning\":\"";
     message += String(relayAlgorithm.isRunning());
-    message += "\",";
+    message += "\"";
     
     message += "}";
     server.send(200, "application/json", message);
 }
 
-void setup() {
+void setup() 
+{
     Serial.begin(115200);
     WiFi.mode(WIFI_STA);
     WiFi.begin(ssid, password);
@@ -83,25 +91,25 @@ void setup() {
     }
 
     server.on("/", handleRoot);
-    server.on("/api/getInfo", handleAllInfo);
-
-    server.on("/api/getTemp", []() {
-        server.send(200, "text/plain", String(DS18B20Sensor.temperature()));
-    });
+    server.on("/api/getInfo", handleAllInfo);  
+    server.on("/api/startAlhorithmTime", handleAllInfo);
+    server.on("/api/startAlhorithmTemp", handleAllInfo);
+    server.on("/api/stopAlhorithm", handleAllInfo);
 
     server.onNotFound(handleNotFound);
 
     server.begin();
     Serial.println("HTTP server started");
 
-    relayAlgorithm.init();
+    relayAlgorithm.begin();
 
-    relay4.init();
-    relay5.init();
-    relay6.init();
+    relay4.begin();
+    relay5.begin();
+    relay6.begin();
 }
 
-void loop() {
+void loop() 
+{
     server.handleClient();
 
     DS18B20Sensor.detectTemperature();
@@ -111,4 +119,16 @@ void loop() {
     relay4.tick();
     relay5.tick();
     relay6.tick();
+
+    readButton();
 }
+
+inline void readButton()
+{
+    cancelButton.poll();
+    if (cancelButton.singleClick()) 
+    {
+        Serial.println("  ==> all_e_B singleClick.");
+    }
+}
+

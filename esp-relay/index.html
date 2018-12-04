@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8"/>
         <title>Slim 3</title>
-        <link href='//fonts.googleapis.com/css?family=Lato:300' rel='stylesheet' type='text/css'>
+        <!--<link href='//fonts.googleapis.com/css?family=Lato:300' rel='stylesheet' type='text/css'>-->
         <style>
             body {
                 margin: 50px 0 0 0;
@@ -33,7 +33,7 @@
     <body>
     	<div>
     		<span>Relay algorithm state: </span>
-    		<span id="algorithm_satate" class="algorithm-state running">running</span>
+    		<span id="algorithm_satate" class="algorithm-state running">...</span>
     	</div>
     	<div>
     		<span>Current temperature: </span><span id="temperature">0.0</span>°
@@ -76,20 +76,40 @@
 
 
     	<script type="text/javascript">
+            var isRunning = false;
+
     		document.getElementById("start_button").addEventListener("click" , function() {
     			alert('Hi!')
     		});
 
-    		function httpGetAsync(theUrl, callback)
-			{
-			    var xmlHttp = new XMLHttpRequest();
-			    xmlHttp.onreadystatechange = function() { 
-			        if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
-			            callback(xmlHttp.responseText);
-			    }
-			    xmlHttp.open("GET", theUrl, true);
-			    xmlHttp.send(null);
-			}
+            setInterval(function() {
+                getInfo();
+            }, 1000);
+
+            function getInfo() {
+                httpGetAsync("http://10.10.11.165/api/getInfo", function(responseText)
+                {
+                    //console.log(responseText);
+                    var info = JSON.parse(responseText);
+                    document.getElementById("temperature").innerHTML = info.temperature;
+
+                    isRunning = info.isRunning === 1 ? true : false;
+
+                    document.getElementById("algorithm_satate").textContent = (isRunning ? "running" : "stopped");
+                    document.getElementById("start_button").textContent = (isRunning ? "Stop" : "Start");
+                });  
+            }
+
+            function httpGetAsync(theUrl, callback)
+            {
+                var xmlHttp = new XMLHttpRequest();
+                xmlHttp.onreadystatechange = function() { 
+                    if (xmlHttp.readyState == 4 && xmlHttp.status == 200)
+                        callback(xmlHttp.responseText);
+                }
+                xmlHttp.open("GET", theUrl, true);
+                xmlHttp.send(null);
+            }
     	</script>
     </body>
 </html>

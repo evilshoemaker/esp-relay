@@ -8,7 +8,7 @@ class TimerRelay
 public:
     TimerRelay(uint8_t relayPin);
 
-    void init();
+    void begin();
     void tick();
     void start(uint32_t sleepMs);
     

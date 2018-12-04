@@ -12,7 +12,7 @@ RelayAlgorithm::RelayAlgorithm(uint8_t relay1Pin, uint8_t relay2Pin, uint8_t rel
     
 }
 
-void RelayAlgorithm::init()
+void RelayAlgorithm::begin()
 {
     pinMode(relay1Pin_, OUTPUT);
     pinMode(relay2Pin_, OUTPUT);
@@ -92,6 +92,6 @@ void RelayAlgorithm::stop()
 
 bool RelayAlgorithm::isRunning()
 {
-    return currentState_ == IDLE_STATE;
+    return currentState_ != IDLE_STATE;
 }
 
