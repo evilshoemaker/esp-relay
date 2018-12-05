@@ -85,7 +85,7 @@ void startAlhorithmTime()
 {
     server.sendHeader("Access-Control-Allow-Origin", "*");
     
-    if (!relayAlgorithm.isRunning())
+    if (!timeAlgorithm.isRunning())
     {
         String timeStr = server.arg("time_value");
 
@@ -111,7 +111,7 @@ void startAlhorithmTime()
 
 void startAlhorithmTemp()
 {
-    server.sendHeader("Access-Control-Allow-Origin", "*");
+    /*server.sendHeader("Access-Control-Allow-Origin", "*");
     
     if (!relayAlgorithm.isRunning())
     {
@@ -132,7 +132,7 @@ void startAlhorithmTemp()
         {
             server.send(200, "application/json", "{\"result\":\"error\", \"message\":\"Invalid parameters\"}");
         }
-    }
+    }*/
 }
 
 void stopAlhorithm()

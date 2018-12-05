@@ -19,14 +19,16 @@ void TimeAlgorithm::tick()
 
 void TimeAlgorithm::start(uint32_t sleepMs)
 {
-    algorithmTimeEnd_ = sleepMs;
-    algorithmTimeStart_ = millis();
-    isRunning_ = true;
-    algorithm_->start();
+    if (!algorithm_->isRunning())
+    {
+        algorithmTimeEnd_ = sleepMs;
+        algorithmTimeStart_ = millis();
+        algorithm_->start();
+    }
 }
 
 bool TimeAlgorithm::isRunning()
 {
-    return isRunning_;
+    return algorithm_->isRunning();
 }
 
