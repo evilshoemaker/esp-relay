@@ -29,6 +29,16 @@ TimerRelay relay6(D7);
 
 Switch cancelButton = Switch(D8, INPUT, HIGH);
 
+uint32_t algorithmTimeStart = 0;
+int tempMin = 0;
+int tempMax = 0;
+uint32_t algorithmTimeEnd = 0; 
+
+enum AlgoritmType {
+    TIME_TYPE = 0,
+    TEMP_TYPE
+} currentType = TIME_TYPE;
+
 void handleRoot() 
 {
     server.sendContent_P(MAIN_page);
@@ -70,23 +80,54 @@ void handleAllInfo()
 
 void startAlhorithmTime()
 {
-    if (!relayAlgorithm.isRenning())
+    if (!relayAlgorithm.isRunning())
     {
+        algorithmTimeStart = millis();
         relayAlgorithm.start();
+        currentType = TIME_TYPE;
     }
 }
 
 void startAlhorithmTemp()
 {
-    if (!relayAlgorithm.isRenning())
+    server.sendHeader("Access-Control-Allow-Origin", "*");
+    
+    if (!relayAlgorithm.isRunning())
     {
-        relayAlgorithm.start();
+        String tempMinStr = server.arg("temp_min_value");
+        String tempMaxStr = server.arg("temp_max_value");
+        
+        if (server.arg("temp_min_value") !=  "" && server.arg("temp_max_value") != "")
+        {
+            
+
+            if (!isDigit(tempMinStr) && !isDigit(tempMaxStr))
+            {
+                server.send(200, "application/json", "{\"result\":\"error\", \"message\":\"Invalid parameters\"}");
+                return;
+            }
+
+            tempMin = tempMinStr.toInt();
+            tempMax = tempMaxStr.toInt();
+            
+            relayAlgorithm.start();
+            currentType = TEMP_TYPE;
+            
+            server.send(200, "application/json", "{\"result\":\"success\", \"message\":\"" + String(tempMin) + String(tempMax) + "\"}");
+        }
+        else
+        {
+            server.send(200, "application/json", "{\"result\":\"error\", \"message\":\"Invalid parameters\"}");
+        }
     }
 }
 
 void stopAlhorithm()
 {
-    
+    if (relayAlgorithm.isRunning())
+    {
+        relayAlgorithm.stop();
+    }
 }
 
 void turnOnRelay()
