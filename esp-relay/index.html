@@ -28,6 +28,10 @@
             	width: 70px;
             }
 
+            .runnind-state {
+                color: red;
+            }
+
         </style>
     </head>
     <body>
@@ -39,10 +43,14 @@
     		<span>Current temperature: </span><span id="temperature">0.0</span>°
     	</div>
 
+        <form id="time_alhoritm_form"> 
     	<div>
-    		<span>Relay algorithm:</span>&nbsp;
-    		<input type="button" value="Start" id="start_time_button">
+    		<span>Time algorithm:</span>&nbsp;
+            <input type="number" value="1000" name="time_value" min="100" id="time_value" class="time-input">
+            <span>ms</span>&nbsp;
+    		<input type="submit" value="Start" id="start_time_button">
     	</div>
+        </form>
 
         <form id="temp_alhoritm_form"> 
     	<div>
@@ -79,31 +87,76 @@
     	<script type="text/javascript">
             var isRunning = false;
 
-    		/*document.getElementById("start_button").addEventListener("click" , function() {
-    			alert('Hi!')
-    		});*/
-
             document.getElementById("temp_alhoritm_form").addEventListener("submit" , function(event) {
                 event.preventDefault();
-                
-                var params = encodeURI("temp_min_value=" + this.temp_min_value.value
-                    + "&temp_max_value=" + this.temp_max_value.value
-                );
 
-                httpGetAsync("http://10.10.11.165/api/startAlhorithmTemp?" + params, function(responseText)
+                if (isRunning)
                 {
+                    stopAlgorithm();
+                }
+                else
+                {
+                    var params = encodeURI("temp_min_value=" + this.temp_min_value.value
+                        + "&temp_max_value=" + this.temp_max_value.value
+                    );
+
+                    httpGetAsync("http://10.10.11.165/api/startAlhorithmTemp?" + params, function(responseText)
+                    {
+                        console.log(responseText);
+                        var info = JSON.parse(responseText);
+                        if (info.result == "success")
+                        {
+                            alert("Algorithm is running");
+                        }
+                        else
+                        {
+                            alert("Error. " + info.message);
+                        }
+                    });
+                }
+            });
+
+            document.getElementById("time_alhoritm_form").addEventListener("submit" , function(event) {
+                event.preventDefault();
+
+                if (isRunning)
+                {
+                    stopAlgorithm();
+                }
+                else
+                {
+                    var params = encodeURI("time_value=" + this.time_value.value);
+
+                    httpGetAsync("http://10.10.11.165/api/startAlhorithmTime?" + params, function(responseText)
+                    {
+                        console.log(responseText);
+                        var info = JSON.parse(responseText);
+                        if (info.result == "success")
+                        {
+                            alert("Algorithm is running");
+                        }
+                        else
+                        {
+                            alert("Error. " + info.message);
+                        }
+                    });
+                }
+            });
+
+            function stopAlgorithm() {
+                httpGetAsync("http://10.10.11.165/api/stopAlhorithm", function(responseText) {
                     console.log(responseText);
                     var info = JSON.parse(responseText);
                     if (info.result == "success")
                     {
-                        alert("Algorithm is running");
+                        alert("Algorithm is stopped");
                     }
                     else
                     {
                         alert("Error. " + info.message);
                     }
                 });
-            });
+            }
 
             setInterval(function() {
                 getInfo();
@@ -116,11 +169,19 @@
                     var info = JSON.parse(responseText);
                     document.getElementById("temperature").innerHTML = info.temperature;
 
-                    isRunning = info.isRunning === 1 ? true : false;
+                    isRunning = info.isRunning === "1" || info.isRunning === 1 ? true : false;
 
                     document.getElementById("algorithm_satate").textContent = (isRunning ? "running" : "stopped");
-                    document.getElementById("start_time_button").textContent = (isRunning ? "Stop" : "Start");
-                    document.getElementById("start_temp_button").textContent = (isRunning ? "Stop" : "Start");
+                    if (isRunning) {
+                        document.getElementById("algorithm_satate").classList.add("runnind-state");
+                    }
+                    else {
+                        document.getElementById("algorithm_satate").classList.remove("runnind-state");
+                    }
+                    
+
+                    document.getElementById("start_time_button").value = (isRunning ? "Stop" : "Start");
+                    document.getElementById("start_temp_button").value = (isRunning ? "Stop" : "Start");
                 });  
             }
 

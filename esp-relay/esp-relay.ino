@@ -8,6 +8,7 @@
 #include "DS18B20.h"
 #include "RelayAlgorithm.h"
 #include "TimerRelay.h"
+#include "TimeAlgorithm.h"
 
 #include "index.h"
 
@@ -27,12 +28,14 @@ TimerRelay relay4(D5);
 TimerRelay relay5(D6);
 TimerRelay relay6(D7);
 
+TimeAlgorithm timeAlgorithm(&relayAlgorithm);
+
 Switch cancelButton = Switch(D8, INPUT, HIGH);
 
-uint32_t algorithmTimeStart = 0;
-int tempMin = 0;
-int tempMax = 0;
-uint32_t algorithmTimeEnd = 0; 
+//uint32_t algorithmTimeStart = 0;
+//int tempMin = 0;
+//int tempMax = 0;
+//uint32_t algorithmTimeEnd = 0; 
 
 enum AlgoritmType {
     TIME_TYPE = 0,
@@ -80,11 +83,29 @@ void handleAllInfo()
 
 void startAlhorithmTime()
 {
+    server.sendHeader("Access-Control-Allow-Origin", "*");
+    
     if (!relayAlgorithm.isRunning())
     {
-        algorithmTimeStart = millis();
-        relayAlgorithm.start();
-        currentType = TIME_TYPE;
+        String timeStr = server.arg("time_value");
+
+        if (isNumeric(timeStr))
+        {
+            char longbuf[32];
+            timeStr.toCharArray(longbuf, sizeof(longbuf));
+            uint32_t time = strtoul(longbuf, 0, 10);
+            
+            //algorithmTimeStart = millis();
+            //relayAlgorithm.start();
+            timeAlgorithm.start(time);
+            currentType = TIME_TYPE;
+            
+            server.send(200, "application/json", "{\"result\":\"success\", \"message\":\"\"}");
+        }
+        else
+        {
+            server.send(200, "application/json", "{\"result\":\"error\", \"message\":\"Invalid parameters\"}");
+        }
     }
 }
 
@@ -97,23 +118,15 @@ void startAlhorithmTemp()
         String tempMinStr = server.arg("temp_min_value");
         String tempMaxStr = server.arg("temp_max_value");
         
-        if (server.arg("temp_min_value") !=  "" && server.arg("temp_max_value") != "")
+        if (isNumeric(tempMinStr) && isNumeric(tempMaxStr))
         {
-            
-
-            if (!isDigit(tempMinStr) && !isDigit(tempMaxStr))
-            {
-                server.send(200, "application/json", "{\"result\":\"error\", \"message\":\"Invalid parameters\"}");
-                return;
-            }
-
             tempMin = tempMinStr.toInt();
             tempMax = tempMaxStr.toInt();
             
             relayAlgorithm.start();
             currentType = TEMP_TYPE;
             
-            server.send(200, "application/json", "{\"result\":\"success\", \"message\":\"" + String(tempMin) + String(tempMax) + "\"}");
+            server.send(200, "application/json", "{\"result\":\"success\", \"message\":\"\"}");
         }
         else
         {
@@ -124,9 +137,16 @@ void startAlhorithmTemp()
 
 void stopAlhorithm()
 {
+    server.sendHeader("Access-Control-Allow-Origin", "*");
+    
     if (relayAlgorithm.isRunning())
     {
         relayAlgorithm.stop();
+        server.send(200, "application/json", "{\"result\":\"success\", \"message\":\"\"}");
+    }
+    else
+    {
+        server.send(200, "application/json", "{\"result\":\"error\", \"message\":\"Task is not running\"}");
     }
 }
 
@@ -190,6 +210,11 @@ void loop()
     readButton();
 }
 
+inline void checkEndAlhoritm()
+{
+    
+}
+
 inline void readButton()
 {
     cancelButton.poll();
@@ -197,5 +222,14 @@ inline void readButton()
     {
         Serial.println("  ==> all_e_B singleClick.");
     }
+}
+
+bool isNumeric(const String &str) {
+    for (char i = 0; i < str.length(); i++) {
+        if ( !(isDigit(str.charAt(i)) || str.charAt(i) == '.' || (str.charAt(i) == '-' && i == 0))) {
+            return false;
+        }
+    }
+    return true;
 }
 
