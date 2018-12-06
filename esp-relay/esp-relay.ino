@@ -126,10 +126,17 @@ void startAlhorithmTemp()
         {
             int tempMin = tempMinStr.toInt();
             int tempMax = tempMaxStr.toInt();
+
+            if (tempMin >= tempMax)
+            {
+                server.send(200, "application/json", "{\"result\":\"error\", \"message\":\"Invalid parameters. MIN >= MAX\"}");
+            }
+            else
+            {
+                tempAlgorithm.start(tempMin, tempMax);
             
-            tempAlgorithm.start(tempMin, tempMax);
-            
-            server.send(200, "application/json", "{\"result\":\"success\", \"message\":\"\"}");
+                server.send(200, "application/json", "{\"result\":\"success\", \"message\":\"\"}");
+            }
         }
         else
         {
@@ -170,7 +177,32 @@ void stopTempAlhorithm()
 
 void turnOnRelay()
 {
+    server.sendHeader("Access-Control-Allow-Origin", "*");
+
+    String relayIdStr = server.arg("relay_id");
+    String relayTimeStr = server.arg("relay_time");
     
+    if (isNumeric(relayIdStr) && isNumeric(relayTimeStr))
+    {
+        int relayId = relayIdStr.toInt();
+
+        char longbuf[32];
+        relayTimeStr.toCharArray(longbuf, sizeof(longbuf));
+        uint32_t time = strtoul(longbuf, 0, 10);
+        
+        switch (relayId)
+        {
+            case 4:
+                relay4.start(time);
+                break;
+            case 5:
+                relay5.start(time);
+                break;
+            case 6:
+                relay6.start(time);
+                break;
+        }
+    }
 }
 
 void setup() 
