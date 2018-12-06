@@ -85,12 +85,13 @@
 
 
     	<script type="text/javascript">
-            var isRunning = false;
+            var isTempRunning = false;
+            var isTimeRunning = false;
 
             document.getElementById("temp_alhoritm_form").addEventListener("submit" , function(event) {
                 event.preventDefault();
 
-                if (isRunning)
+                if (isTempRunning)
                 {
                     stopAlgorithm();
                 }
@@ -119,7 +120,7 @@
             document.getElementById("time_alhoritm_form").addEventListener("submit" , function(event) {
                 event.preventDefault();
 
-                if (isRunning)
+                if (isTimeRunning)
                 {
                     stopAlgorithm();
                 }
@@ -169,7 +170,9 @@
                     var info = JSON.parse(responseText);
                     document.getElementById("temperature").innerHTML = info.temperature;
 
-                    isRunning = info.isRunning === "1" || info.isRunning === 1 ? true : false;
+                    isTempRunning = info.isTempRunning === "1" || info.isTempRunning === 1 ? true : false;
+                    isTimeRunning = info.isTimeRunning === "1" || info.isTimeRunning === 1 ? true : false;
+
 
                     document.getElementById("algorithm_satate").textContent = (isRunning ? "running" : "stopped");
                     if (isRunning) {
@@ -180,8 +183,11 @@
                     }
                     
 
-                    document.getElementById("start_time_button").value = (isRunning ? "Stop" : "Start");
-                    document.getElementById("start_temp_button").value = (isRunning ? "Stop" : "Start");
+                    document.getElementById("start_time_button").value = (isTimeRunning ? "Stop" : "Start");
+                    document.getElementById("start_time_button").disabled = isTempRunning;
+
+                    document.getElementById("start_temp_button").value = (isTempRunning ? "Stop" : "Start");
+                    document.getElementById("start_temp_button").disabled = isTimeRunning;
                 });  
             }
 

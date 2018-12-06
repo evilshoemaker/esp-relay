@@ -9,6 +9,7 @@
 #include "RelayAlgorithm.h"
 #include "TimerRelay.h"
 #include "TimeAlgorithm.h"
+#include "TempAlgorithm.h"
 
 #include "index.h"
 
@@ -29,6 +30,7 @@ TimerRelay relay5(D6);
 TimerRelay relay6(D7);
 
 TimeAlgorithm timeAlgorithm(&relayAlgorithm);
+TempAlgorithm tempAlgorithm(&relayAlgorithm, &DS18B20Sensor);
 
 Switch cancelButton = Switch(D8, INPUT, HIGH);
 
@@ -73,8 +75,12 @@ void handleAllInfo()
     message += String(DS18B20Sensor.temperature());
     message += "\",";
 
-    message += "\"isRunning\":\"";
-    message += String(relayAlgorithm.isRunning());
+    message += "\"isTempRunning\":\"";
+    message += String(tempAlgorithm.isRunning());
+    message += "\",";
+
+    message += "\"isTimeRunning\":\"";
+    message += String(timeAlgorithm.isRunning());
     message += "\"";
     
     message += "}";
@@ -95,8 +101,6 @@ void startAlhorithmTime()
             timeStr.toCharArray(longbuf, sizeof(longbuf));
             uint32_t time = strtoul(longbuf, 0, 10);
             
-            //algorithmTimeStart = millis();
-            //relayAlgorithm.start();
             timeAlgorithm.start(time);
             currentType = TIME_TYPE;
             
@@ -111,20 +115,19 @@ void startAlhorithmTime()
 
 void startAlhorithmTemp()
 {
-    /*server.sendHeader("Access-Control-Allow-Origin", "*");
+    server.sendHeader("Access-Control-Allow-Origin", "*");
     
-    if (!relayAlgorithm.isRunning())
+    if (!tempAlgorithm.isRunning())
     {
         String tempMinStr = server.arg("temp_min_value");
         String tempMaxStr = server.arg("temp_max_value");
         
         if (isNumeric(tempMinStr) && isNumeric(tempMaxStr))
         {
-            tempMin = tempMinStr.toInt();
-            tempMax = tempMaxStr.toInt();
+            int tempMin = tempMinStr.toInt();
+            int tempMax = tempMaxStr.toInt();
             
-            relayAlgorithm.start();
-            currentType = TEMP_TYPE;
+            tempAlgorithm.start(tempMin, tempMax);
             
             server.send(200, "application/json", "{\"result\":\"success\", \"message\":\"\"}");
         }
@@ -132,16 +135,31 @@ void startAlhorithmTemp()
         {
             server.send(200, "application/json", "{\"result\":\"error\", \"message\":\"Invalid parameters\"}");
         }
-    }*/
+    }
 }
 
-void stopAlhorithm()
+void stopTimeAlhorithm()
 {
     server.sendHeader("Access-Control-Allow-Origin", "*");
     
-    if (relayAlgorithm.isRunning())
+    if (timeAlgorithm.isRunning())
     {
-        relayAlgorithm.stop();
+        timeAlgorithm.stop();
+        server.send(200, "application/json", "{\"result\":\"success\", \"message\":\"\"}");
+    }
+    else
+    {
+        server.send(200, "application/json", "{\"result\":\"error\", \"message\":\"Task is not running\"}");
+    }
+}
+
+void stopTempAlhorithm()
+{
+    server.sendHeader("Access-Control-Allow-Origin", "*");
+    
+    if (tempAlgorithm.isRunning())
+    {
+        tempAlgorithm.stop();
         server.send(200, "application/json", "{\"result\":\"success\", \"message\":\"\"}");
     }
     else
@@ -180,7 +198,8 @@ void setup()
     server.on("/api/getInfo", handleAllInfo);  
     server.on("/api/startAlhorithmTime", startAlhorithmTime);
     server.on("/api/startAlhorithmTemp", startAlhorithmTemp);
-    server.on("/api/stopAlhorithm", stopAlhorithm);
+    server.on("/api/stopTimeAlhorithm", stopTimeAlhorithm);
+    server.on("/api/stopTempAlhorithm", stopTempAlhorithm);
     server.on("/api/turnOnRelay", turnOnRelay);
 
     server.onNotFound(handleNotFound);
