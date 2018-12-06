@@ -14,8 +14,10 @@
 #include "index.h"
 
 #ifndef STASSID
-#define STASSID "em70"
-#define STAPSK  "em70Greate"
+//#define STASSID "em70"
+//#define STAPSK  "em70Greate"
+#define STASSID "esprelay"
+#define STAPSK  "12345678"
 #endif
 
 const char* ssid = STASSID;
@@ -33,11 +35,6 @@ TimeAlgorithm timeAlgorithm(&relayAlgorithm);
 TempAlgorithm tempAlgorithm(&relayAlgorithm, &DS18B20Sensor);
 
 Switch cancelButton = Switch(D8, INPUT, HIGH);
-
-//uint32_t algorithmTimeStart = 0;
-//int tempMin = 0;
-//int tempMax = 0;
-//uint32_t algorithmTimeEnd = 0; 
 
 enum AlgoritmType {
     TIME_TYPE = 0,
@@ -208,7 +205,16 @@ void turnOnRelay()
 void setup() 
 {
     Serial.begin(115200);
-    WiFi.mode(WIFI_STA);
+
+    WiFi.softAP(ssid, password);
+    
+    Serial.println();
+    Serial.print("Server IP address: ");
+    Serial.println(WiFi.softAPIP());
+    Serial.print("Server MAC address: ");
+    Serial.println(WiFi.softAPmacAddress());
+    
+    /*WiFi.mode(WIFI_STA);
     WiFi.begin(ssid, password);
     Serial.println("");
 
@@ -220,7 +226,7 @@ void setup()
     Serial.print("Connected to ");
     Serial.println(ssid);
     Serial.print("IP address: ");
-    Serial.println(WiFi.localIP());
+    Serial.println(WiFi.localIP());*/
 
     if (MDNS.begin("esp8266")) {
         Serial.println("MDNS responder started");
@@ -261,17 +267,13 @@ void loop()
     readButton();
 }
 
-inline void checkEndAlhoritm()
-{
-    
-}
-
 inline void readButton()
 {
     cancelButton.poll();
     if (cancelButton.singleClick()) 
     {
-        Serial.println("  ==> all_e_B singleClick.");
+        timeAlgorithm.stop();
+        tempAlgorithm.stop();
     }
 }
 
@@ -283,4 +285,3 @@ bool isNumeric(const String &str) {
     }
     return true;
 }
-

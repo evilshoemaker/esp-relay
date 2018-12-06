@@ -2,8 +2,8 @@ char MAIN_page[] PROGMEM = R"=====(<!DOCTYPE html>
 <html>
     <head>
         <meta charset="utf-8"/>
-        <title>Slim 3</title>
-        <link href='//fonts.googleapis.com/css?family=Lato:300' rel='stylesheet' type='text/css'>
+        <title>EspRelay</title>
+        <!--<link href='//fonts.googleapis.com/css?family=Lato:300' rel='stylesheet' type='text/css'>-->
         <style>
             body {
                 margin: 50px 0 0 0;
@@ -25,7 +25,11 @@ char MAIN_page[] PROGMEM = R"=====(<!DOCTYPE html>
             }
 
             .time-input {
-                width: 70px;
+             width: 70px;
+            }
+
+            .runnind-state {
+                color: red;
             }
 
         </style>
@@ -33,25 +37,30 @@ char MAIN_page[] PROGMEM = R"=====(<!DOCTYPE html>
     <body>
         <div>
             <span>Relay algorithm state: </span>
-            <span id="algorithm_satate" class="algorithm-state running">running</span>
+            <span id="algorithm_satate" class="algorithm-state running">...</span>
         </div>
         <div>
             <span>Current temperature: </span><span id="temperature">0.0</span>°
         </div>
 
+        <form id="time_alhoritm_form"> 
         <div>
-            <span>Relay algorithm:</span>&nbsp;
-            <input type="button" value="Start" id="start_button">
+            <span>Time algorithm:</span>&nbsp;
+            <input type="number" value="1000" name="time_value" min="100" id="time_value" class="time-input">
+            <span>ms</span>&nbsp;
+            <input type="submit" value="Start" id="start_time_button">
         </div>
+        </form>
 
+        <form id="temp_alhoritm_form"> 
         <div>
             <span>Temp algorithm:</span>&nbsp;
-
-            <input type="number" value="-5" id="temp_min_value" class="time-input">
-            <input type="number" value="20" id="temp_max_value" class="time-input">
-            <input type="checkbox" id="temperature_algorithm_checkbox">
-            <label for="temperature_algorithm_checkbox">enable</label>
+            
+            <input type="number" value="-5" name="temp_min_value" id="temp_min_value" class="time-input">
+            <input type="number" value="20" name="temp_max_value" id="temp_max_value" class="time-input">
+            <input type="submit" value="Start" id="start_temp_button">
         </div>
+        </form>
 
         <div>
             <span>Relay 4:</span>&nbsp;
@@ -76,9 +85,126 @@ char MAIN_page[] PROGMEM = R"=====(<!DOCTYPE html>
 
 
         <script type="text/javascript">
-            document.getElementById("start_button").addEventListener("click" , function() {
-                alert('Hi!')
+            var isTempRunning = false;
+            var isTimeRunning = false;
+
+            document.getElementById("temp_alhoritm_form").addEventListener("submit" , function(event) {
+                event.preventDefault();
+
+                if (isTempRunning)
+                {
+                    stopTempAlhorithm();
+                }
+                else
+                {
+                    var params = encodeURI("temp_min_value=" + this.temp_min_value.value
+                        + "&temp_max_value=" + this.temp_max_value.value
+                    );
+
+                    httpGetAsync("/api/startAlhorithmTemp?" + params, function(responseText)
+                    {
+                        console.log(responseText);
+                        var info = JSON.parse(responseText);
+                        if (info.result == "success")
+                        {
+                            alert("Algorithm is running");
+                        }
+                        else
+                        {
+                            alert("Error. " + info.message);
+                        }
+                    });
+                }
             });
+
+            document.getElementById("time_alhoritm_form").addEventListener("submit" , function(event) {
+                event.preventDefault();
+
+                if (isTimeRunning)
+                {
+                    stopTimeAlhorithm();
+                }
+                else
+                {
+                    var params = encodeURI("time_value=" + this.time_value.value);
+
+                    httpGetAsync("/api/startAlhorithmTime?" + params, function(responseText)
+                    {
+                        console.log(responseText);
+                        var info = JSON.parse(responseText);
+                        if (info.result == "success")
+                        {
+                            alert("Algorithm is running");
+                        }
+                        else
+                        {
+                            alert("Error. " + info.message);
+                        }
+                    });
+                }
+            });
+
+            function stopTempAlhorithm() {
+                httpGetAsync("/api/stopTempAlhorithm", function(responseText) {
+                    console.log(responseText);
+                    var info = JSON.parse(responseText);
+                    if (info.result == "success")
+                    {
+                        alert("Algorithm is stopped");
+                    }
+                    else
+                    {
+                        alert("Error. " + info.message);
+                    }
+                });
+            }
+
+            function stopTimeAlhorithm() {
+                httpGetAsync("/api/stopTimeAlhorithm", function(responseText) {
+                    console.log(responseText);
+                    var info = JSON.parse(responseText);
+                    if (info.result == "success")
+                    {
+                        alert("Algorithm is stopped");
+                    }
+                    else
+                    {
+                        alert("Error. " + info.message);
+                    }
+                });
+            }
+
+            setInterval(function() {
+                getInfo();
+            }, 1000);
+
+            function getInfo() {
+                httpGetAsync("/api/getInfo", function(responseText)
+                {
+                    console.log(responseText);
+                    var info = JSON.parse(responseText);
+                    document.getElementById("temperature").innerHTML = info.temperature;
+
+                    isTempRunning = info.isTempRunning === "1" || info.isTempRunning === 1 ? true : false;
+                    isTimeRunning = info.isTimeRunning === "1" || info.isTimeRunning === 1 ? true : false;
+
+
+                    document.getElementById("algorithm_satate").textContent = (isTempRunning || isTimeRunning ? "running" : "stopped");
+                    if (isTempRunning || isTimeRunning) {
+                        document.getElementById("algorithm_satate").classList.add("runnind-state");
+                    }
+                    else {
+                        document.getElementById("algorithm_satate").classList.remove("runnind-state");
+                    }
+                    
+
+                    document.getElementById("start_time_button").value = (isTimeRunning ? "Stop" : "Start");
+                    document.getElementById("start_time_button").disabled = isTempRunning;
+
+                    document.getElementById("start_temp_button").value = (isTempRunning ? "Stop" : "Start");
+                    document.getElementById("start_temp_button").disabled = isTimeRunning;
+                });  
+            }
 
             function httpGetAsync(theUrl, callback)
             {

@@ -2,7 +2,7 @@
 <html>
     <head>
         <meta charset="utf-8"/>
-        <title>Slim 3</title>
+        <title>EspRelay</title>
         <!--<link href='//fonts.googleapis.com/css?family=Lato:300' rel='stylesheet' type='text/css'>-->
         <style>
             body {
@@ -93,7 +93,7 @@
 
                 if (isTempRunning)
                 {
-                    stopAlgorithm();
+                    stopTempAlhorithm();
                 }
                 else
                 {
@@ -101,7 +101,7 @@
                         + "&temp_max_value=" + this.temp_max_value.value
                     );
 
-                    httpGetAsync("http://10.10.11.165/api/startAlhorithmTemp?" + params, function(responseText)
+                    httpGetAsync("/api/startAlhorithmTemp?" + params, function(responseText)
                     {
                         console.log(responseText);
                         var info = JSON.parse(responseText);
@@ -122,13 +122,13 @@
 
                 if (isTimeRunning)
                 {
-                    stopAlgorithm();
+                    stopTimeAlhorithm();
                 }
                 else
                 {
                     var params = encodeURI("time_value=" + this.time_value.value);
 
-                    httpGetAsync("http://10.10.11.165/api/startAlhorithmTime?" + params, function(responseText)
+                    httpGetAsync("/api/startAlhorithmTime?" + params, function(responseText)
                     {
                         console.log(responseText);
                         var info = JSON.parse(responseText);
@@ -144,8 +144,23 @@
                 }
             });
 
-            function stopAlgorithm() {
-                httpGetAsync("http://10.10.11.165/api/stopAlhorithm", function(responseText) {
+            function stopTempAlhorithm() {
+                httpGetAsync("/api/stopTempAlhorithm", function(responseText) {
+                    console.log(responseText);
+                    var info = JSON.parse(responseText);
+                    if (info.result == "success")
+                    {
+                        alert("Algorithm is stopped");
+                    }
+                    else
+                    {
+                        alert("Error. " + info.message);
+                    }
+                });
+            }
+
+            function stopTimeAlhorithm() {
+                httpGetAsync("/api/stopTimeAlhorithm", function(responseText) {
                     console.log(responseText);
                     var info = JSON.parse(responseText);
                     if (info.result == "success")
@@ -164,7 +179,7 @@
             }, 1000);
 
             function getInfo() {
-                httpGetAsync("http://10.10.11.165/api/getInfo", function(responseText)
+                httpGetAsync("/api/getInfo", function(responseText)
                 {
                     console.log(responseText);
                     var info = JSON.parse(responseText);
@@ -174,8 +189,8 @@
                     isTimeRunning = info.isTimeRunning === "1" || info.isTimeRunning === 1 ? true : false;
 
 
-                    document.getElementById("algorithm_satate").textContent = (isRunning ? "running" : "stopped");
-                    if (isRunning) {
+                    document.getElementById("algorithm_satate").textContent = (isTempRunning || isTimeRunning ? "running" : "stopped");
+                    if (isTempRunning || isTimeRunning) {
                         document.getElementById("algorithm_satate").classList.add("runnind-state");
                     }
                     else {
