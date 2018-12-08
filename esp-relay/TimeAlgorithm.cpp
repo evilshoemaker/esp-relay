@@ -39,4 +39,3 @@ bool TimeAlgorithm::isRunning()
 {
     return isRunning_;
 }
-

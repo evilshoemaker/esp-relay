@@ -6,7 +6,7 @@
 class TimerRelay
 {
 public:
-    TimerRelay(uint8_t relayPin);
+    TimerRelay(int relayPin);
 
     void begin();
     void tick();
@@ -14,7 +14,7 @@ public:
     
 private:
     bool isRunning_ = false;
-    uint8_t relayPin_ = 0;
+    int relayPin_ = 0;
     uint32_t sleepMs_ = 900;
     uint32_t timeStarted_ = 0;
 };

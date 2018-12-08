@@ -3,7 +3,7 @@
 #include <WiFiClient.h>
 #include <ESP8266WebServer.h>
 #include <ESP8266mDNS.h>
-#include "avdweb_Switch.h"
+#include <avdweb_Switch.h>
 
 #include "DS18B20.h"
 #include "RelayAlgorithm.h"
@@ -14,8 +14,6 @@
 #include "index.h"
 
 #ifndef STASSID
-//#define STASSID "em70"
-//#define STAPSK  "em70Greate"
 #define STASSID "esprelay"
 #define STAPSK  "12345678"
 #endif
@@ -97,8 +95,8 @@ void startAlhorithmTime()
             char longbuf[32];
             timeStr.toCharArray(longbuf, sizeof(longbuf));
             uint32_t time = strtoul(longbuf, 0, 10);
-            
-            timeAlgorithm.start(time);
+
+            timeAlgorithm.start(time * 1000 * 60);
             currentType = TIME_TYPE;
             
             server.send(200, "application/json", "{\"result\":\"success\", \"message\":\"\"}");
@@ -177,7 +175,7 @@ void turnOnRelay()
     server.sendHeader("Access-Control-Allow-Origin", "*");
 
     String relayIdStr = server.arg("relay_id");
-    String relayTimeStr = server.arg("relay_time");
+    String relayTimeStr = server.arg("time_value");
     
     if (isNumeric(relayIdStr) && isNumeric(relayTimeStr))
     {
@@ -199,6 +197,12 @@ void turnOnRelay()
                 relay6.start(time);
                 break;
         }
+
+        server.send(200, "application/json", "{\"result\":\"success\", \"message\":\"\"}");
+    }
+    else
+    {
+        server.send(200, "application/json", "{\"result\":\"error\", \"message\":\"Invalid parameters\"}");
     }
 }
 
@@ -213,7 +217,8 @@ void setup()
     Serial.println(WiFi.softAPIP());
     Serial.print("Server MAC address: ");
     Serial.println(WiFi.softAPmacAddress());
-    
+
+    //режима для подключения к сети
     /*WiFi.mode(WIFI_STA);
     WiFi.begin(ssid, password);
     Serial.println("");
@@ -258,6 +263,8 @@ void loop()
 
     DS18B20Sensor.detectTemperature();
 
+    tempAlgorithm.tick();
+    timeAlgorithm.tick();
     relayAlgorithm.tick();
 
     relay4.tick();

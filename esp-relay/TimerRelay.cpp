@@ -1,6 +1,6 @@
 #include "TimerRelay.h"
 
-TimerRelay::TimerRelay(uint8_t relayPin) :
+TimerRelay::TimerRelay(int relayPin) :
     relayPin_(relayPin)
 {
     
@@ -28,4 +28,3 @@ void TimerRelay::start(uint32_t sleepMs)
     digitalWrite(relayPin_, LOW);
     timeStarted_ = millis();
 }
-

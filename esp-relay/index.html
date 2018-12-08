@@ -46,8 +46,8 @@
         <form id="time_alhoritm_form"> 
     	<div>
     		<span>Time algorithm:</span>&nbsp;
-            <input type="number" value="1000" name="time_value" min="100" id="time_value" class="time-input">
-            <span>ms</span>&nbsp;
+            <input type="number" value="1" name="time_value" min="1" id="time_value" class="time-input">
+            <span>min</span>&nbsp;
     		<input type="submit" value="Start" id="start_time_button">
     	</div>
         </form>
@@ -62,26 +62,35 @@
     	</div>
         </form>
 
+        <form id="relay4_time_form"> 
     	<div>
     		<span>Relay 4:</span>&nbsp;
-    		<input type="number" value="900" id="relay4_time_value" class="time-input">
+    		<input type="number" value="900" name="time_value" class="time-input">
+            <input type="hidden" value="4" name="relay_id">
     		<span>ms</span>&nbsp;
-    		<input type="button" value="Start" id="relay4_button">
+    		<input type="submit" value="Start" id="relay4_button">
     	</div>
+        </form>
 
+        <form id="relay5_time_form"> 
     	<div>
     		<span>Relay 5:</span>&nbsp;
-    		<input type="number" value="900" id="relay5_time_value" class="time-input">
+    		<input type="number" value="900" name="time_value" class="time-input">
+            <input type="hidden" value="5" name="relay_id">
     		<span>ms</span>&nbsp;
-    		<input type="button" value="Start" id="relay5_button">
+    		<input type="submit" value="Start" id="relay5_button">
     	</div>
+        </form>
 
+        <form id="relay6_time_form">
     	<div>
     		<span>Relay 6:</span>&nbsp;
-    		<input type="number" value="900" id="relay6_time_value" class="time-input">
+    		<input type="number" value="900" name="time_value" class="time-input">
+            <input type="hidden" value="6" name="relay_id">
     		<span>ms</span>&nbsp;
-    		<input type="button" value="Start" id="relay6_button">
+    		<input type="submit" value="Start" id="relay6_button">
     	</div>
+        </form>
 
 
     	<script type="text/javascript">
@@ -143,6 +152,43 @@
                     });
                 }
             });
+
+            document.getElementById("relay4_time_form").addEventListener("submit" , function(event) {
+                event.preventDefault();
+
+                var params = encodeURI("time_value=" + this.time_value.value + "&relay_id=" + this.relay_id.value);
+                turnOnRelay(params);
+            });
+
+            document.getElementById("relay5_time_form").addEventListener("submit" , function(event) {
+                event.preventDefault();
+
+                var params = encodeURI("time_value=" + this.time_value.value + "&relay_id=" + this.relay_id.value);
+                turnOnRelay(params);
+            });
+
+            document.getElementById("relay6_time_form").addEventListener("submit" , function(event) {
+                event.preventDefault();
+
+                var params = encodeURI("time_value=" + this.time_value.value + "&relay_id=" + this.relay_id.value);
+                turnOnRelay(params);
+            });
+
+            function turnOnRelay(params) {
+                httpGetAsync("/api/turnOnRelay?" + params, function(responseText)
+                {
+                    /*console.log(responseText);
+                    var info = JSON.parse(responseText);
+                    if (info.result == "success")
+                    {
+                        alert("Algorithm is running");
+                    }
+                    else
+                    {
+                        alert("Error. " + info.message);
+                    }*/
+                });
+            }
 
             function stopTempAlhorithm() {
                 httpGetAsync("/api/stopTempAlhorithm", function(responseText) {

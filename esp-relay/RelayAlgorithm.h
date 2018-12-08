@@ -24,6 +24,7 @@ private:
         STEP_5_STATE,
         STEP_6_SLEEP_STATE, 
         STEP_7_STATE,
+        STEP_8_STATE,
         STOPED_STATE
         
     } currentState_ = IDLE_STATE;
@@ -36,4 +37,3 @@ private:
 };
 
 #endif
-

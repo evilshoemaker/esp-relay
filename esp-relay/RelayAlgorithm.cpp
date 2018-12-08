@@ -78,6 +78,14 @@ void RelayAlgorithm::tick()
             currentState_ = STEP_7_STATE;
         }
     }
+    else if (currentState_ == STEP_7_STATE)
+    {
+        digitalWrite(relay2Pin_, LOW);
+        digitalWrite(relay3Pin_, HIGH);
+
+        currentState_ = STEP_8_STATE;
+        lastUpdateTime_ = millis();
+    }
 }
 
 void RelayAlgorithm::start()
@@ -94,4 +102,3 @@ bool RelayAlgorithm::isRunning()
 {
     return currentState_ != IDLE_STATE;
 }
-
